@@ -36,31 +36,33 @@
           sans-serif;
         display: flex;
         justify-content: center;
-        padding: 48px 20px 80px;
+        padding: 64px 24px 48px;
       }
       main {
         width: 100%;
-        max-width: 620px;
+        max-width: 680px;
       }
       header {
-        margin-bottom: 28px;
+        margin-bottom: 32px;
+        text-align: center;
       }
       h1 {
-        font-size: 22px;
-        margin: 0 0 6px;
-        letter-spacing: -0.01em;
+        font-size: 24px;
+        margin: 0 0 8px;
+        letter-spacing: -0.015em;
       }
       header p {
-        margin: 0;
+        margin: 0 auto;
         color: var(--text-dim);
-        font-size: 14px;
-        max-width: 48ch;
+        font-size: 15px;
+        max-width: 54ch;
+        line-height: 1.5;
       }
 
       .dropzone {
         border: 1.5px dashed var(--line);
         border-radius: 12px;
-        padding: 48px 24px;
+        padding: 56px 32px;
         text-align: center;
         cursor: pointer;
         background: var(--surface);
@@ -117,16 +119,17 @@
         background: var(--surface);
         border: 1px solid var(--line);
         border-radius: 12px;
-        padding: 20px;
+        padding: 24px;
         display: flex;
         justify-content: center;
         align-items: center;
-        min-height: 120px;
+        min-height: 160px;
       }
       .preview canvas {
         max-width: 100%;
         height: auto;
         display: block;
+        border-radius: 4px;
       }
       .checker {
         background-image:
@@ -143,12 +146,17 @@
       }
 
       .controls {
-        margin-top: 16px;
+        margin-top: 20px;
         display: flex;
         flex-wrap: wrap;
-        gap: 12px;
+        gap: 16px;
         align-items: center;
         justify-content: space-between;
+      }
+      @media (max-width: 500px) {
+        .controls {
+          justify-content: center;
+        }
       }
       .segmented {
         display: inline-flex;
@@ -204,13 +212,14 @@
       }
 
       .meta {
-        margin-top: 14px;
+        margin-top: 16px;
         font:
-          12.5px/1.6 ui-monospace,
+          13px/1.5 ui-monospace,
           SFMono-Regular,
           Menlo,
           monospace;
         color: var(--text-dim);
+        text-align: center;
       }
       .meta b {
         color: var(--text);
@@ -218,8 +227,9 @@
       }
 
       .replace {
-        margin-top: 18px;
-        font-size: 13px;
+        margin-top: 16px;
+        font-size: 14px;
+        text-align: center;
       }
       .replace a {
         color: var(--accent);
@@ -250,6 +260,55 @@
       .status.show {
         opacity: 1;
         transform: translateX(-50%) translateY(0);
+      }
+
+      .how-it-works {
+        margin-top: 56px;
+        padding-top: 32px;
+        border-top: 1px solid var(--line);
+      }
+      .how-it-works h2 {
+        font-size: 16px;
+        margin: 0 0 12px;
+        color: var(--text);
+        font-weight: 600;
+        text-align: center;
+      }
+      .how-it-works p {
+        margin: 0 auto 12px;
+        color: var(--text-dim);
+        font-size: 14px;
+        line-height: 1.6;
+        text-align: center;
+        max-width: 60ch;
+      }
+      .how-it-works p:last-child {
+        margin-bottom: 0;
+      }
+
+      .footer {
+        margin-top: 48px;
+        padding-top: 24px;
+        border-top: 1px solid var(--line);
+        text-align: center;
+      }
+      .footer p {
+        margin: 0;
+        color: var(--text-dim);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+      .footer a {
+        color: var(--text-dim);
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        transition:
+          color 0.15s ease,
+          border-color 0.15s ease;
+      }
+      .footer a:hover {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
       }
     </style>
   </head>
@@ -321,6 +380,42 @@
           <a id="replaceLink">Choose a different image</a>
         </div>
       </div>
+
+      <section class="how-it-works">
+        <h2>How it works</h2>
+        <p>
+          GitHub automatically scales down wide images in READMEs to fit the
+          column width (typically around 838px). If you add a fixed pixel border
+          in an image editor, GitHub's scaling will shrink that border, making
+          it look uneven or too thin.
+        </p>
+        <p>
+          This tool calculates the exact border thickness needed <em>before</em>
+          GitHub's scaling occurs. It scales up the border proportionally so
+          that after GitHub shrinks the image, the border renders at the
+          perfect, consistent thickness you expect.
+        </p>
+      </section>
+
+      <footer class="footer">
+        <p>
+          Developed by
+          <a href="https://github.com/effessdev" target="_blank" rel="noopener"
+            >effessdev</a
+          >
+          &middot;
+          <a href="https://effessdev.github.io" target="_blank" rel="noopener"
+            >Website</a
+          >
+          &middot;
+          <a
+            href="https://github.com/effessdev/readme-img-border"
+            target="_blank"
+            rel="noopener"
+            >Source Code</a
+          >
+        </p>
+      </footer>
 
       <div class="status" id="status"></div>
     </main>
