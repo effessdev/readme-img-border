@@ -274,16 +274,64 @@
         font-weight: 600;
         text-align: center;
       }
-      .how-it-works p {
-        margin: 0 auto 12px;
+      .how-it-works .intro {
+        margin: 0 auto 20px;
         color: var(--text-dim);
         font-size: 14px;
         line-height: 1.6;
         text-align: center;
         max-width: 60ch;
       }
-      .how-it-works p:last-child {
-        margin-bottom: 0;
+      .how-it-works details {
+        max-width: 60ch;
+        margin: 0 auto;
+        border-top: 1px solid var(--line);
+      }
+      .how-it-works details:last-child {
+        border-bottom: 1px solid var(--line);
+      }
+      .how-it-works summary {
+        padding: 14px 4px;
+        cursor: pointer;
+        color: var(--text);
+        font-size: 14px;
+        font-weight: 500;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        transition: color 0.15s ease;
+      }
+      .how-it-works summary::-webkit-details-marker {
+        display: none;
+      }
+      .how-it-works summary:hover {
+        color: var(--accent);
+      }
+      .how-it-works summary::after {
+        content: "\203A";
+        font-size: 18px;
+        line-height: 1;
+        color: var(--text-dim);
+        transform: rotate(90deg);
+        transition: transform 0.15s ease;
+        flex: none;
+      }
+      .how-it-works details[open] summary::after {
+        transform: rotate(-90deg);
+      }
+      .how-it-works details > p {
+        margin: 0 0 14px;
+        padding: 0 4px;
+        color: var(--text-dim);
+        font-size: 14px;
+        line-height: 1.6;
+        text-align: left;
+        max-width: none;
+      }
+      .how-it-works details > p:last-child {
+        margin-bottom: 14px;
       }
 
       .footer {
@@ -382,18 +430,115 @@
 
       <section class="how-it-works">
         <h2>How it works</h2>
-        <p>
-          GitHub automatically scales down wide images in READMEs to fit the
-          column width (typically around 838px). If you add a fixed pixel border
-          in an image editor, GitHub's scaling will shrink that border, making
-          it look uneven or too thin.
-        </p>
-        <p>
-          This tool calculates the exact border thickness needed <em>before</em>
-          GitHub's scaling occurs. It scales up the border proportionally so
-          that after GitHub shrinks the image, the border renders at the
-          perfect, consistent thickness you expect.
-        </p>
+        <p class="intro">Open any section below for the details.</p>
+
+        <details>
+          <summary>Why GitHub shrinks your image</summary>
+          <p>
+            GitHub's markdown CSS gives every image a
+            <code>max-width: 100%</code> rule. The README content column is
+            roughly 838px wide, so any image wider than that is scaled down by
+            the browser to fit the column. The image on disk is never changed —
+            the shrink happens at render time, and the scale factor is simply
+            the image's natural width divided by 838. A 1676px-wide image is
+            shown at 50% size, a 2514px image at 33%, and so on. Images narrower
+            than the breakpoint render at full size and are not touched at all.
+          </p>
+        </details>
+
+        <details>
+          <summary>The problem with a fixed-pixel border</summary>
+          <p>
+            This scaling is the root of the problem. If you add a 1px border in
+            an image editor and the image is later shrunk to 50%, that border is
+            rendered at half a pixel once GitHub displays it — thin, blurry, and
+            inconsistent with whatever else is on the page. Add a thicker border
+            to compensate and it will be wrong again the moment the image is
+            narrower than the column, or the moment GitHub's layout changes.
+            There is no single pixel value that works everywhere, because the
+            correct value depends on how much the image will be scaled.
+          </p>
+        </details>
+
+        <details>
+          <summary>How the border thickness is calculated</summary>
+          <p>
+            This tool solves that by working in the opposite direction. It takes
+            the image's natural width, compares it to the 838px breakpoint, and
+            computes the scale factor GitHub will apply. It then multiplies the
+            desired on-screen border thickness (<b>1px</b> by default, set by
+            <code>MIN_WIDTH</code>) by that same factor and rounds to a whole
+            number of pixels. A 1676px image gets a 2px baked-in border; once
+            GitHub shrinks the image by half, that border reads as exactly 1px.
+            A 3352px image gets a 4px border, which also reads as 1px after the
+            4× shrink. The border in the file is bigger than what you see — but
+            only by exactly the amount GitHub is about to take away.
+          </p>
+        </details>
+
+        <details>
+          <summary>How the output image is built</summary>
+          <p>
+            The output image is the source image plus the border on all four
+            sides, so the final canvas is the source width plus twice the border
+            by the source height plus twice the border. The border is drawn
+            first as a filled rounded rectangle spanning the whole canvas, then
+            the source image is clipped to an inner rounded rectangle and drawn
+            on top. The outer corner radius is scaled up by the same factor as
+            the border so it also reads correctly after shrinking, and the inner
+            radius is the outer radius minus the border thickness, which keeps
+            the border itself an even width all the way around the corners. With
+            the default radius of 0 this reduces to square corners, but the
+            geometry is already in place if you want rounded ones.
+          </p>
+        </details>
+
+        <details>
+          <summary>How the border color is chosen</summary>
+          <p>
+            The border color is chosen in one of three ways. <b>Light</b> and
+            <b>Dark</b> simply use the two colors defined in the config (<code
+              >LIGHT_COLOR</code
+            >
+            is a dark slate, <code>DARK_COLOR</code> is a light grey — the names
+            describe the image they suit, not the border itself). <b>Auto</b>,
+            the default, samples the image to decide which of the two will be
+            more visible. The image is drawn into a tiny 32×32 offscreen canvas
+            (<code>AUTO_SAMPLE_SIZE</code>) so the sampling is fast regardless
+            of how large the source is, and the average perceived brightness of
+            every pixel is computed using the standard luma weights (0.299 red,
+            0.587 green, 0.114 blue). Pixels that are almost fully transparent —
+            alpha below <code>AUTO_ALPHA_CUTOFF</code>, 16 by default — are
+            skipped, so a PNG with a lot of transparent padding doesn't get
+            mistaken for a bright image just because most of its pixels are
+            empty. If the average brightness is above
+            <code>AUTO_LUMINANCE_THRESHOLD</code>
+            (128, i.e. mid-grey), the image is treated as light and gets the
+            dark border; otherwise it gets the light border. If the canvas can't
+            be read at all — which happens with cross-origin images that taint
+            the canvas — the code falls back to treating the image as light and
+            using the dark border, on the assumption that a visible border is
+            better than no border.
+          </p>
+        </details>
+
+        <details>
+          <summary>What the readout and buttons do</summary>
+          <p>
+            Under the preview you'll see a readout like
+            <b>1676×942</b> source &rarr; <b>1680×946</b> output &middot; border
+            <b>2px</b> (scaled 2.00x so it reads as 1px once GitHub shrinks it
+            to fit). The left side is the image you loaded; the right side is
+            the PNG this tool will produce. The border figure is the raw pixel
+            count baked into that PNG, and the parenthetical tells you whether
+            scaling was applied at all — for an image narrower than 838px it
+            will say no scaling was needed, and the border will simply be 1px.
+            Nothing is uploaded anywhere: the whole pipeline runs in your
+            browser on a canvas, and <b>Download</b> saves the result as a PNG
+            while <b>Copy</b> puts it on the clipboard for pasting straight into
+            a GitHub issue or README editor.
+          </p>
+        </details>
       </section>
 
       <footer class="footer">
