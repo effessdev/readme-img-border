@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Border for GitHub READMEs</title>
+<style>
+  :root{
+    --bg:#0d1117;
+    --surface:#161b22;
+    --surface-2:#1c2128;
+    --line:#30363d;
+    --text:#e6edf3;
+    --text-dim:#8b949e;
+    --accent:#3fb950;
+    --accent-hover:#56d364;
+    --accent-text:#05280f;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    display:flex;
+    justify-content:center;
+    padding:48px 20px 80px;
+  }
+  main{width:100%;max-width:620px;}
+  header{margin-bottom:28px;}
+  h1{
+    font-size:22px;
+    margin:0 0 6px;
+    letter-spacing:-0.01em;
+  }
+  header p{
+    margin:0;
+    color:var(--text-dim);
+    font-size:14px;
+    max-width:48ch;
+  }
+
+  .dropzone{
+    border:1.5px dashed var(--line);
+    border-radius:12px;
+    padding:48px 24px;
+    text-align:center;
+    cursor:pointer;
+    background:var(--surface);
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .dropzone:hover,.dropzone:focus-visible{border-color:var(--text-dim);outline:none;}
+  .dropzone.drag-over{border-color:var(--accent);background:var(--surface-2);}
+  .dropzone .glyph{
+    width:40px;height:40px;margin:0 auto 14px;
+    color:var(--text-dim);
+  }
+  .dropzone .main-text{font-size:15px;}
+  .dropzone .sub-text{font-size:13px;color:var(--text-dim);margin-top:4px;}
+  .dropzone .sub-text kbd{
+    font:12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:2px 5px;
+  }
+  input[type=file]{display:none;}
+
+  .workspace{display:none;}
+  .workspace.visible{display:block;}
+
+  .preview{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:20px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:120px;
+  }
+  .preview canvas{
+    max-width:100%;
+    height:auto;
+    display:block;
+  }
+  .checker{
+    background-image:
+      linear-gradient(45deg,#2a2f38 25%,transparent 25%),
+      linear-gradient(-45deg,#2a2f38 25%,transparent 25%),
+      linear-gradient(45deg,transparent 75%,#2a2f38 75%),
+      linear-gradient(-45deg,transparent 75%,#2a2f38 75%);
+    background-size:16px 16px;
+    background-position:0 0,0 8px,8px -8px,-8px 0;
+  }
+
+  .controls{
+    margin-top:16px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .segmented{
+    display:inline-flex;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:3px;
+    gap:2px;
+  }
+  .segmented button{
+    border:none;
+    background:transparent;
+    color:var(--text-dim);
+    font-size:13px;
+    padding:6px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .segmented button.active{
+    background:var(--surface-2);
+    color:var(--text);
+  }
+  .segmented button:hover:not(.active){color:var(--text);}
+
+  .actions{display:flex;gap:8px;}
+  button.action{
+    font-family:inherit;
+    font-size:13px;
+    font-weight:500;
+    border-radius:7px;
+    padding:7px 14px;
+    cursor:pointer;
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--text);
+  }
+  button.action:hover{background:var(--surface-2);}
+  button.action.primary{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:var(--accent-text);
+  }
+  button.action.primary:hover{background:var(--accent-hover);}
+
+  .meta{
+    margin-top:14px;
+    font:12.5px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;
+    color:var(--text-dim);
+  }
+  .meta b{color:var(--text);font-weight:600;}
+
+  .replace{
+    margin-top:18px;
+    font-size:13px;
+  }
+  .replace a{color:var(--accent);text-decoration:none;cursor:pointer;}
+  .replace a:hover{text-decoration:underline;}
+
+  .status{
+    position:fixed;
+    bottom:24px;left:50%;
+    transform:translateX(-50%) translateY(10px);
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    color:var(--text);
+    padding:9px 16px;
+    border-radius:8px;
+    font-size:13px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease;
+  }
+  .status.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Border for GitHub READMEs</h1>
+    <p>Adds a border that still looks right after GitHub shrinks a wide image down to fit the page.</p>
+  </header>
+
+  <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload an image">
+    <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="main-text">Drop an image, click to browse, or paste it</div>
+    <div class="sub-text">Paste with <kbd>Ctrl/Cmd</kbd> + <kbd>V</kbd></div>
+  </div>
+  <input type="file" id="fileInput" accept="image/*">
+
+  <div class="workspace" id="workspace">
+    <div class="preview checker" id="preview"></div>
+
+    <div class="controls">
+      <div class="segmented" id="colorMode" role="group" aria-label="Border color">
+        <button data-mode="auto" class="active">Auto</button>
+        <button data-mode="light">Light</button>
+        <button data-mode="dark">Dark</button>
+      </div>
+      <div class="actions">
+        <button class="action" id="copyBtn">Copy</button>
+        <button class="action primary" id="downloadBtn">Download</button>
+      </div>
+    </div>
+
+    <div class="meta" id="meta"></div>
+
+    <div class="replace"><a id="replaceLink">Choose a different image</a></div>
+  </div>
+
+  <div class="status" id="status"></div>
+</main>
+
+<script>
+/* ======================================================================
+   CONFIG — everything about how the border looks lives here.
+   ====================================================================== */
+const CONFIG = {
+  // Border thickness in pixels, AS IT WILL APPEAR once rendered on GitHub
+  // (GitHub's markdown CSS sets `img { max-width: 100% }`, so an image
+  // wider than the README column gets shrunk by the browser — this is
+  // the apparent/visual thickness after that shrink, not the raw pixel
+  // count baked into the file for a wide image).
+  MIN_WIDTH: 14,
+
+  // The width (px) of GitHub's rendered README column, i.e. the point
+  // past which a wide image stops displaying at full size and gets
+  // scaled down to fit. Adjust if GitHub's layout changes or you know
+  // your repo renders at a different width.
+  BREAKPOINT: 800,
+
+  // Corner radius in pixels, measured at the same "as rendered on
+  // GitHub" scale as MIN_WIDTH.
+  CORNER_RADIUS: 18,
+
+  // The two selectable border colors.
+  LIGHT_COLOR: '#ffffff',
+  DARK_COLOR: '#000000',
+
+  // "Auto" mode samples the image and compares its average brightness
+  // (0 = black, 255 = white) against this number. Above it, the image
+  // is treated as light (so a DARK_COLOR border is used); at or below,
+  // the image is treated as dark (so LIGHT_COLOR is used).
+  AUTO_LUMINANCE_THRESHOLD: 128,
+
+  // Resolution the image is downsampled to before sampling its average
+  // brightness. Small and fast on purpose — it only needs to catch the
+  // overall tone, not fine detail.
+  AUTO_SAMPLE_SIZE: 32,
+
+  // Ignore near-transparent pixels when sampling brightness, so a PNG
+  // with transparent padding doesn't skew the result toward "light".
+  AUTO_ALPHA_CUTOFF: 16,
+};
+/* ====================================================================== */
+
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const workspace = document.getElementById('workspace');
+const previewEl = document.getElementById('preview');
+const metaEl = document.getElementById('meta');
+const colorModeEl = document.getElementById('colorMode');
+const copyBtn = document.getElementById('copyBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const replaceLink = document.getElementById('replaceLink');
+const statusEl = document.getElementById('status');
+
+let currentImg = null;
+let currentName = 'image';
+let currentMode = 'auto';
+let currentCanvas = null;
+
+function showStatus(msg){
+  statusEl.textContent = msg;
+  statusEl.classList.add('show');
+  clearTimeout(showStatus._t);
+  showStatus._t = setTimeout(() => statusEl.classList.remove('show'), 2200);
+}
+
+function roundRectPath(ctx, x, y, w, h, r){
+  r = Math.max(0, Math.min(r, w / 2, h / 2));
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function isLightImage(img){
+  const s = CONFIG.AUTO_SAMPLE_SIZE;
+  const c = document.createElement('canvas');
+  c.width = s; c.height = s;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(img, 0, 0, s, s);
+  let data;
+  try { data = ctx.getImageData(0, 0, s, s).data; }
+  catch (e) { return true; } // tainted canvas (cross-origin) — fall back to dark border
+
+  let total = 0, count = 0;
+  for (let i = 0; i < data.length; i += 4){
+    const a = data[i + 3];
+    if (a < CONFIG.AUTO_ALPHA_CUTOFF) continue;
+    const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+    total += lum;
+    count++;
+  }
+  if (count === 0) return true;
+  return (total / count) > CONFIG.AUTO_LUMINANCE_THRESHOLD;
+}
+
+function resolveColor(mode, img){
+  if (mode === 'light') return CONFIG.LIGHT_COLOR;
+  if (mode === 'dark') return CONFIG.DARK_COLOR;
+  return isLightImage(img) ? CONFIG.DARK_COLOR : CONFIG.LIGHT_COLOR;
+}
+
+function render(){
+  if (!currentImg) return;
+  const img = currentImg;
+  const w = img.naturalWidth, h = img.naturalHeight;
+
+  const scale = w > CONFIG.BREAKPOINT ? (w / CONFIG.BREAKPOINT) : 1;
+  const border = Math.round(CONFIG.MIN_WIDTH * scale);
+  const outerRadius = CONFIG.CORNER_RADIUS * scale;
+  const innerRadius = Math.max(0, outerRadius - border);
+
+  const outW = w + border * 2;
+  const outH = h + border * 2;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = outW;
+  canvas.height = outH;
+  const ctx = canvas.getContext('2d');
+
+  const color = resolveColor(currentMode, img);
+
+  roundRectPath(ctx, 0, 0, outW, outH, outerRadius);
+  ctx.fillStyle = color;
+  ctx.fill();
+
+  ctx.save();
+  roundRectPath(ctx, border, border, w, h, innerRadius);
+  ctx.clip();
+  ctx.drawImage(img, border, border, w, h);
+  ctx.restore();
+
+  currentCanvas = canvas;
+  previewEl.innerHTML = '';
+  previewEl.appendChild(canvas);
+
+  const scaledNote = scale > 1
+    ? `scaled ${scale.toFixed(2)}x so it reads as ${CONFIG.MIN_WIDTH}px once GitHub shrinks it to fit`
+    : `no scaling needed (image narrower than the ${CONFIG.BREAKPOINT}px breakpoint)`;
+  metaEl.innerHTML =
+    `<b>${w}×${h}</b> source &rarr; <b>${outW}×${outH}</b> output &middot; ` +
+    `border <b>${border}px</b> (${scaledNote})`;
+}
+
+function setMode(mode){
+  currentMode = mode;
+  [...colorModeEl.children].forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
+  render();
+}
+
+function loadFile(file){
+  if (!file || !file.type || !file.type.startsWith('image/')) return;
+  currentName = (file.name || 'image').replace(/\.[^.]+$/, '');
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      currentImg = img;
+      workspace.classList.add('visible');
+      setMode(currentMode);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+});
+replaceLink.addEventListener('click', () => fileInput.click());
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) loadFile(fileInput.files[0]);
+});
+
+['dragenter', 'dragover'].forEach(evt =>
+  dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add('drag-over'); })
+);
+['dragleave', 'drop'].forEach(evt =>
+  dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.remove('drag-over'); })
+);
+dropzone.addEventListener('drop', (e) => {
+  const file = e.dataTransfer.files && e.dataTransfer.files[0];
+  if (file) loadFile(file);
+});
+
+window.addEventListener('paste', (e) => {
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (const item of items){
+    if (item.type && item.type.startsWith('image/')){
+      loadFile(item.getAsFile());
+      break;
+    }
+  }
+});
+
+colorModeEl.addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-mode]');
+  if (btn) setMode(btn.dataset.mode);
+});
+
+downloadBtn.addEventListener('click', () => {
+  if (!currentCanvas) return;
+  currentCanvas.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${currentName}-bordered.png`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, 'image/png');
+});
+
+copyBtn.addEventListener('click', () => {
+  if (!currentCanvas) return;
+  currentCanvas.toBlob(async (blob) => {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      showStatus('Copied to clipboard');
+    } catch (err) {
+      showStatus('Copy not supported here — use Download instead');
+    }
+  }, 'image/png');
+});
+</script>
+</body>
+</html>
