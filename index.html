@@ -596,6 +596,7 @@
             currentImg = img;
             workspace.classList.add("visible");
             setMode(currentMode);
+            workspace.scrollIntoView({ behavior: "smooth", block: "center" });
           };
           img.src = e.target.result;
         };
