@@ -6,15 +6,32 @@
     <title>Border for GitHub READMEs</title>
     <style>
       :root {
-        --bg: #0d1117;
-        --surface: #161b22;
-        --surface-2: #1c2128;
-        --line: #30363d;
-        --text: #e6edf3;
-        --text-dim: #8b949e;
-        --accent: #3fb950;
-        --accent-hover: #56d364;
-        --accent-text: #05280f;
+        color-scheme: light dark;
+
+        --bg: #ffffff;
+        --surface: #f6f8fa;
+        --surface-2: #eaeef2;
+        --line: #d0d7de;
+        --text: #1f2328;
+        --text-dim: #59636e;
+        --accent: #1f883d;
+        --accent-hover: #1a7f37;
+        --accent-text: #ffffff;
+        --checker: #e1e5ea;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0d1117;
+          --surface: #161b22;
+          --surface-2: #1c2128;
+          --line: #30363d;
+          --text: #e6edf3;
+          --text-dim: #8b949e;
+          --accent: #3fb950;
+          --accent-hover: #56d364;
+          --accent-text: #05280f;
+          --checker: #2a2f38;
+        }
       }
       * {
         box-sizing: border-box;
@@ -133,10 +150,10 @@
       }
       .checker {
         background-image:
-          linear-gradient(45deg, #2a2f38 25%, transparent 25%),
-          linear-gradient(-45deg, #2a2f38 25%, transparent 25%),
-          linear-gradient(45deg, transparent 75%, #2a2f38 75%),
-          linear-gradient(-45deg, transparent 75%, #2a2f38 75%);
+          linear-gradient(45deg, var(--checker) 25%, transparent 25%),
+          linear-gradient(-45deg, var(--checker) 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, var(--checker) 75%),
+          linear-gradient(-45deg, transparent 75%, var(--checker) 75%);
         background-size: 16px 16px;
         background-position:
           0 0,
